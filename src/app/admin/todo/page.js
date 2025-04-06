@@ -7,6 +7,7 @@ import {
   updateTodo,
   deleteTodo,
 } from "../../../store/todo/todoThunk";
+import { FaTimes } from "react-icons/fa"; // Import FontAwesome Times icon for cross
 
 const Page = () => {
   const dispatch = useDispatch();
@@ -14,6 +15,7 @@ const Page = () => {
   const { todos, loading, error } = useSelector((state) => state.todos);
   const [newTodo, setNewTodo] = useState("");
   const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null); // To store the image preview
   const [editTodo, setEditTodo] = useState(null);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ const Page = () => {
       dispatch(createTodo(formData));
       setNewTodo("");
       setImage(null);
+      setImagePreview(null); // Reset the image preview
       fileRef.current.value = null;
     }
   };
@@ -36,6 +39,8 @@ const Page = () => {
   const handleEditTodo = (todo) => {
     setEditTodo(todo);
     setNewTodo(todo.title);
+    setImagePreview(todo.image);
+    fileRef.current.value = null;
   };
 
   const handleUpdateTodo = () => {
@@ -47,6 +52,7 @@ const Page = () => {
       dispatch(updateTodo({ id: editTodo._id, todoData: formData }));
       setNewTodo("");
       setImage(null);
+      setImagePreview(null); // Reset the image preview
       setEditTodo(null);
       fileRef.current.value = null;
     }
@@ -54,6 +60,25 @@ const Page = () => {
 
   const handleDeleteTodo = (id) => {
     dispatch(deleteTodo(id));
+  };
+
+  const handleImageChange = (e) => {
+    const selectedImage = e.target.files[0];
+    setImage(selectedImage);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result); // Show the image preview
+    };
+    if (selectedImage) {
+      reader.readAsDataURL(selectedImage);
+    }
+  };
+
+  // Handle image deletion
+  const handleDeleteImage = () => {
+    setImage(null);
+    setImagePreview(null);
+    fileRef.current.value = null; // Reset the file input
   };
 
   return (
@@ -76,8 +101,25 @@ const Page = () => {
           type="file"
           accept="image/*"
           className="w-full border border-dashed border-gray-400 p-2 rounded-lg"
-          onChange={(e) => setImage(e.target.files[0])}
+          onChange={handleImageChange}
         />
+
+        {/* Show image preview if available */}
+        {imagePreview && (
+          <div className="mt-4 relative flex justify-end">
+            <img
+              src={imagePreview}
+              alt="Selected"
+              className="w-32 h-32 object-contain rounded-lg border"
+            />
+            <button
+              onClick={handleDeleteImage}
+              className="absolute top-0 left-full bg-red-500 text-white p-1 rounded-full"
+            >
+              <FaTimes size={10} />
+            </button>
+          </div>
+        )}
 
         <button
           onClick={editTodo ? handleUpdateTodo : handleAddTodo}
@@ -108,7 +150,7 @@ const Page = () => {
                 <img
                   src={todo.image}
                   alt="todo"
-                  className="w-16 h-16 rounded object-cover border"
+                  className="w-16 h-16 rounded object-contain border"
                 />
               )}
               <span
@@ -129,7 +171,7 @@ const Page = () => {
                 Edit
               </button>
               <button
-                onClick={() => handleDeleteTodo(todo)}
+                onClick={() => handleDeleteTodo(todo._id)}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-700"
               >
                 Delete
