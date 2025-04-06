@@ -82,7 +82,7 @@ const Page = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-2xl rounded-xl mt-10">
+    <div className="max-w-3xl mx-auto p-6 bg-white shadow-2xl rounded-xl mt-10 h-full">
       <h1 className="text-4xl font-bold text-center text-gray-800 mb-6">
         Todo App with Image Upload
       </h1>
