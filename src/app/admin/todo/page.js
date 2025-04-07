@@ -2,25 +2,37 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchTodos,
+  fetchPaginatedTodos,
   createTodo,
   updateTodo,
   deleteTodo,
+  searchTodos,
 } from "../../../store/todo/todoThunk";
-import { FaTimes } from "react-icons/fa"; // Import FontAwesome Times icon for cross
+import { FaTimes } from "react-icons/fa";
+import moment from "moment/moment";
 
 const Page = () => {
   const dispatch = useDispatch();
   let fileRef = useRef();
-  const { todos, loading, error } = useSelector((state) => state.todos);
+
+  const { todos, loading, error, totalPages } = useSelector(
+    (state) => state.todos
+  );
+
   const [newTodo, setNewTodo] = useState("");
   const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null); // To store the image preview
+  const [imagePreview, setImagePreview] = useState(null);
   const [editTodo, setEditTodo] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    dispatch(fetchTodos());
-  }, [dispatch]);
+    if (searchQuery.trim() === "") {
+      dispatch(fetchPaginatedTodos(page));
+    } else {
+      dispatch(searchTodos(searchQuery));
+    }
+  }, [dispatch, page, searchQuery]);
 
   const handleAddTodo = () => {
     if (newTodo.trim()) {
@@ -31,7 +43,7 @@ const Page = () => {
       dispatch(createTodo(formData));
       setNewTodo("");
       setImage(null);
-      setImagePreview(null); // Reset the image preview
+      setImagePreview(null);
       fileRef.current.value = null;
     }
   };
@@ -52,7 +64,7 @@ const Page = () => {
       dispatch(updateTodo({ id: editTodo._id, todoData: formData }));
       setNewTodo("");
       setImage(null);
-      setImagePreview(null); // Reset the image preview
+      setImagePreview(null);
       setEditTodo(null);
       fileRef.current.value = null;
     }
@@ -67,18 +79,29 @@ const Page = () => {
     setImage(selectedImage);
     const reader = new FileReader();
     reader.onloadend = () => {
-      setImagePreview(reader.result); // Show the image preview
+      setImagePreview(reader.result);
     };
     if (selectedImage) {
       reader.readAsDataURL(selectedImage);
     }
   };
 
-  // Handle image deletion
   const handleDeleteImage = () => {
     setImage(null);
     setImagePreview(null);
-    fileRef.current.value = null; // Reset the file input
+    fileRef.current.value = null;
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setPage(1); // reset to page 1
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
   };
 
   return (
@@ -86,6 +109,17 @@ const Page = () => {
       <h1 className="text-4xl font-bold text-center text-gray-800 mb-6">
         Todo App with Image Upload
       </h1>
+
+      {/* 🔍 Search bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={handleSearch}
+          placeholder="Search todos..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm mb-2"
+        />
+      </div>
 
       <div className="mb-4 space-y-3">
         <input
@@ -104,7 +138,6 @@ const Page = () => {
           onChange={handleImageChange}
         />
 
-        {/* Show image preview if available */}
         {imagePreview && (
           <div className="mt-4 relative flex justify-end">
             <img
@@ -162,6 +195,9 @@ const Page = () => {
               >
                 {todo.title}
               </span>
+              <span className="text-sm text-gray-500">
+                Created: {moment(todo.createdAt).fromNow()}
+              </span>
             </div>
             <div>
               <button
@@ -180,6 +216,41 @@ const Page = () => {
           </div>
         ))}
       </div>
+
+      {/* 🔁 Pagination Buttons */}
+      {searchQuery.trim() === "" && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
+          <button
+            disabled={page === 1}
+            onClick={() => handlePageChange(page - 1)}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => handlePageChange(i + 1)}
+              className={`px-4 py-2 rounded ${
+                page === i + 1
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => handlePageChange(page + 1)}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

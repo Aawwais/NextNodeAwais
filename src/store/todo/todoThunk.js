@@ -52,3 +52,30 @@ export const deleteTodo = createAsyncThunk(
     }
   }
 );
+
+//  search todo
+
+export const searchTodos = createAsyncThunk(
+  "todos/searchTodos",
+  async (query, { rejectWithValue }) => {
+    try {
+      let response = await todoRepository.searchTodo(query);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+//  search todo
+
+export const fetchPaginatedTodos = createAsyncThunk(
+  "todos/fetchPaginatedTodos",
+  async (page, { rejectWithValue }) => {
+    try {
+      let response = await todoRepository.paginationTodos(page);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);

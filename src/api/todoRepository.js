@@ -20,10 +20,22 @@ const deleteTodo = (id) => {
   return axiosInstance.delete(`/todos/${id}`);
 };
 
+//  search
+const searchTodo = (query) => {
+  return axiosInstance.get(`/todos/search/?query=${query}`);
+};
+
+//  pagination
+
+const paginationTodos = (page) => {
+  return axiosInstance.get(`/todos/pagination?page=${page}`);
+};
 // Export all functions
 export const todoRepository = {
   createTodo,
   getTodos,
   updateTodo,
   deleteTodo,
+  searchTodo,
+  paginationTodos,
 };
