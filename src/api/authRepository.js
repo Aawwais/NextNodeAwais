@@ -9,11 +9,14 @@ const login = (credentials) => {
 };
 
 const getUser = () => {
-  return axiosInstance.get("/auth/user");
+  return axiosInstance.get("/auth/profile");
 };
 
 const logout = () => {
   return axiosInstance.post("/auth/logout");
+};
+const updateProfile = (data) => {
+  return axiosInstance.put("/auth/profile", data);
 };
 
 // Export all functions
@@ -22,4 +25,5 @@ export const authRepository = {
   login,
   getUser,
   logout,
+  updateProfile,
 };

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser, singupUser } from "./authThunk";
+import { loginUser, singupUser, updateProfile } from "./authThunk";
 import { toast } from "react-toastify";
 import { setCookie } from "cookies-next";
 import Cookies from "js-cookie";
@@ -25,17 +25,27 @@ export const userSlice = createSlice({
     builder
       .addCase(loginUser.fulfilled, (state, action) => {
         state.user = action.payload;
-        toast.success("login");
+        toast.success("Login successful!");
         setCookie("token", action.payload.token);
       })
+
       .addCase(singupUser.fulfilled, (state, action) => {
         state.user = action.payload;
       })
+
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.user = {
+          ...state.user,
+          ...action.payload,
+        };
+        toast.success("Profile updated successfully!");
+      })
+
       .addMatcher(
-        // Match all thunk actions (pending, fulfilled, rejected)
         (action) => action.type.startsWith("user/"),
         (state, action) => {
-          switch (action.type.split("/")[2]) {
+          const status = action.type.split("/")[2];
+          switch (status) {
             case "pending":
               state.isLoading = true;
               break;
@@ -51,6 +61,7 @@ export const userSlice = createSlice({
       );
   },
 });
+
 export const { logoutUser, removeExistingUser } = userSlice.actions;
 export const resetAllSlices = () => {
   return { type: "RESET_ALL_SLICES" };

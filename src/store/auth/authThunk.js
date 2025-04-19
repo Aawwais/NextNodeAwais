@@ -40,3 +40,28 @@ export const singupUser = createAsyncThunk(
     }
   }
 );
+
+export const updateProfile = createAsyncThunk(
+  "user/updateProfile",
+  async ({ data, onSuccess }, thunkAPI) => {
+    try {
+      for (let [key, value] of data.entries()) {
+        console.log(`${key}:`, value);
+      }
+      const response = await authRepository.updateProfile(data);
+      console.log("Profile Update Response:", response, data);
+
+      if (response?.data) {
+        toast.success("Profile updated successfully! 🎉");
+        if (onSuccess) onSuccess(); // optional callback
+        return response.data;
+      } else {
+        toast.error(response?.message || "Update failed");
+        return thunkAPI.rejectWithValue(response);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+      return thunkAPI.rejectWithValue(error);
+    }
+  }
+);
